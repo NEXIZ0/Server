@@ -1,7 +1,34 @@
 
+kaeferjaeger() {
+    if [ -p /dev/stdin ]; then
+        while IFS= read -r domain; do
+            for provider in amazon digitalocean google microsoft oracle; do
+                curl -s "http://kaeferjaeger.gay/sni-ip-ranges/${provider}/ipv4_merged_sni.txt" |
+                grep -oP "(?<=\[).*(?=\])" |
+                tr ' ' '\n' |
+                grep -F ".$domain" |
+                sed 's/^\*\.//g' |
+                grep -vF "*" |
+                sort -u |
+                anew "$domain".kaeferjaeger
+            done
+        done
+    else
+        for provider in amazon digitalocean google microsoft oracle; do
+            curl -s "http://kaeferjaeger.gay/sni-ip-ranges/${provider}/ipv4_merged_sni.txt" |
+            grep -oP "(?<=\[).*(?=\])" |
+            tr ' ' '\n' |
+            grep -F ".$1" |
+            sed 's/^\*\.//g' |
+            grep -vF "*" |
+            sort -u |
+            anew "$1".kaeferjaeger
+        done
+    fi
+}
 
 
-
+#---------------------------------------------------
 refparam () {
 	fallparams -u "$1" -c
 	x8 -w parameters.txt -u "$1" -m 25 -X GET POST
@@ -16,14 +43,14 @@ sourcegraph () {
     # Check if input is from a pipe
     if [ -p /dev/stdin ]; then
         while IFS= read -r domain; do
-            curl -s "https://sourcegraph.com/search/stream?q=$domain.%20&v=V3&t=keyword&sm=0&display=1500&cm=t&max-line-len=5120" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" | \
+            curl -s "https://sourcegraph.com/search/stream?q=$domain%20&v=V3&t=keyword&sm=0&display=1500&cm=t&max-line-len=5120" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" | \
             grep -oE '\*?\b[a-z0-9]+([-\.][a-z0-9]+)*\.[a-z]{2,}\b' | \
             egrep -v "\.js|php|jpg|html|css|java|json|txt|swift|png|webp|svg" | \
             sort -u | \
             grep -Ei "$domain"
         done
     else
-        curl -s "https://sourcegraph.com/search/stream?q=$1.%20&v=V3&t=keyword&sm=0&display=1500&cm=t&max-line-len=5120" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" | \
+        curl -s "https://sourcegraph.com/search/stream?q=$1%20&v=V3&t=keyword&sm=0&display=1500&cm=t&max-line-len=5120" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" | \
         grep -oE '\*?\b[a-z0-9]+([-\.][a-z0-9]+)*\.[a-z]{2,}\b' | \
         egrep -v "\.js|php|jpg|html|css|java|json|txt|swift|png|webp|svg" | \
         sort -u | \
@@ -132,10 +159,10 @@ httpx_full_silent () {
 httpx_full () {
   if [ -z "$1" ]; then
     while IFS= read -r line; do
-      echo "$line" | httpx -silent -fr -cl -ct -location -follow-host-redirects -title -status-code -cdn -tech-detect -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" -H "Referer: https://$line" -threads 1
+      echo "$line" | httpx -silent -location -follow-host-redirects -title -status-code -cdn -tech-detect -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0" -H "Referer: https://$line" -threads 1
     done
   else
-    echo "$1" | httpx -silent -fr -cl -ct -location -follow-host-redirects -title -status-code -cdn -tech-detect -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firfox/108.0" -H "Referer: https://$1" -threads 1
+    echo "$1" | httpx -silent -location -follow-host-redirects -title -status-code -cdn -tech-detect -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firfox/108.0" -H "Referer: https://$1" -threads 1
   fi
 }
 #-----------------------------------------------
