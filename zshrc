@@ -1,4 +1,17 @@
 
+
+
+
+refparam () {
+	fallparams -u "$1" -c
+	x8 -w parameters.txt -u "$1" -m 25 -X GET POST
+	rm parameters.txt
+	echo "#--------------------------------------------------"
+	x8 -w /nexiz/Word-Listx/xss/full-parameters-xss.txt -u "$1" -m 40 -X GET POST
+}
+
+
+#--------------------------------------------------
 sourcegraph () {
     # Check if input is from a pipe
     if [ -p /dev/stdin ]; then
