@@ -1,4 +1,17 @@
 
+
+
+dnsrepo () {
+    if [ -p /dev/stdin ]; then
+        while IFS= read -r domain; do
+            curl -s "https://dnsrepo.noc.org/?search=$domain" | grep -oP 'href="\K[^"]*' | awk -F'=' '{print $2}' | sed 's/\.$//g' | grep -Ei "($domain)$" | sort -u
+        done
+    else
+        curl -s "https://dnsrepo.noc.org/?search=$1" | grep -oP 'href="\K[^"]*' | awk -F'=' '{print $2}' | sed 's/\.$//g' | grep -Ei "($1)$" | sort -u
+    fi
+}
+
+#----------------------------------------------------------------------
 kaeferjaeger() {
     if [ -p /dev/stdin ]; then
         while IFS= read -r domain; do
@@ -511,7 +524,7 @@ dns_brute_full () {
 	awk -v domain="$1" '{print $0"."domain}' "static-dns-brute.worldlist.txt" >> "$1.wordlist"
 	rm static-dns-brute.worldlist.txt
 	echo "[!] Start shuffledns static brute-force..."
-	shuffledns -mode resolve -t 30 -silent -list $1.wordlist -d $1 -r ~/.resolver -m $(which massdns) | tee $1.dns_brute 2>&1 > /dev/null
+	shuffledns -mode resolve -t 100 -silent -list $1.wordlist -d $1 -r ~/.resolver -m $(which massdns) | tee $1.dns_brute 2>&1 > /dev/null
 	echo "[+] finished shuffledns Static, total $(wc -l $1.dns_brute) resolved..."
 	echo "[!] running subfinder..."
 	subfinder -d $1 -all -silent | dnsx -t 20 -retry 3 -r ~/.resolver -silent | anew $1.dns_brute 2>&1 > /dev/null
@@ -522,7 +535,7 @@ dns_brute_full () {
 	cat $1.dns_brute | dnsgen -w words-merged.txt - | egrep -v "^\." | egrep -v ".*\.\..*" | egrep -v ".*\-\..*" | egrep -v "^\-" | sort -u > $1.dns_gen 2>&1 > /dev/null
 	echo "[+] finished with $(wc -l $1.dns_gen) words..."
 	echo "[!] shuffledns dynamic brute-force on dnsgen results..."
-	shuffledns -mode resolve -t 30 -silent -list $1.dns_gen -d $1 -r ~/.resolver -m $(which massdns) | anew $1.dns_brute 2>&1 > /dev/null
+	shuffledns -mode resolve -t 100 -silent -list $1.dns_gen -d $1 -r ~/.resolver -m $(which massdns) | anew $1.dns_brute 2>&1 > /dev/null
 	echo "[+] finished, total $(wc -l $1.dns_brute) resolved..."
 	rm $1.dns_gen $1.wordlist words-merged.txt
 }
