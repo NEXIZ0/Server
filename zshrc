@@ -1,5 +1,26 @@
 
 
+
+
+
+crtsh_curl () {
+    # Check if input is from a pipe
+    if [ -p /dev/stdin ]; then
+        while IFS= read -r domain; do
+            curl -s "https://crt.sh/?q=$domain&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$domain.crtsh_curl"
+            curl -s "https://crt.sh/?q=%25.$domain&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$domain.crtsh_curl"
+            curl -s "https://crt.sh/?q=%25.%25.$domain&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$domain.crtsh_curl"
+            curl -s "https://crt.sh/?Identity=%25.%25.$domain&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$domain.crtsh_curl"
+        done
+    else
+        curl -s "https://crt.sh/?q=$1&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$1.crtsh_curl"
+        curl -s "https://crt.sh/?q=%25.$1&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$1.crtsh_curl"
+        curl -s "https://crt.sh/?q=%25.%25.$1&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$1.crtsh_curl"
+        curl -s "https://crt.sh/?Identity=%25.%25.$1&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sed 's/^\*\.//g' | sort -u | anew "$1.crtsh_curl"
+    fi
+}
+
+#-----------------------------------------------------------------
 rapiddns () {
   domain="$1"
   pages="$2"
