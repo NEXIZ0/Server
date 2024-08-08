@@ -1,6 +1,27 @@
 
 
+rapiddns () {
+  domain="$1"
+  pages="$2"
+  tmp_file="list.tmp"
+  
+  # Loop through the number of pages
+  for i in $(seq 1 "$pages")
+  do
+    curl -s "https://rapiddns.io/subdomain/$domain?page=$i" \
+    -H "user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" >> "$tmp_file"
+    sleep 5
+  done
+  
+  # Extract and filter results
+  awk -F'</?td>' '{ for(i=2; i<=NF; i+=2) print $i }' "$tmp_file" | grep -Ei "$domain$" | sort -u | anew "$domain.rapiddns"
+  grep -oP 'href="\K[^"]*' "$tmp_file" | cut -d "/" -f 3 | sed "s/#result//g" | grep -Ei "$domain$" | sort -u | anew "$domain.rapiddns"
+  
+  # Clean up temporary file
+  rm "$tmp_file"
+}
 
+#--------------------------------------------------------------
 dnsrepo () {
     if [ -p /dev/stdin ]; then
         while IFS= read -r domain; do
@@ -47,7 +68,7 @@ refparam () {
 	x8 -w parameters.txt -u "$1" -m 25 -X GET POST
 	rm parameters.txt
 	echo "#--------------------------------------------------"
-	x8 -w /nexiz/Word-Listx/xss/full-parameters-xss.txt -u "$1" -m 40 -X GET POST
+	x8 -w /nexiz/word-list/xss/super-full-parameters-xss.txt -u "$1" -m 50 -X GET POST
 }
 
 
